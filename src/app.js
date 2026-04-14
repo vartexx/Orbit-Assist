@@ -109,9 +109,16 @@ async function postJson(path, body, fallbackMessage) {
     body: JSON.stringify(body)
   });
 
-  const payload = await response.json().catch(() => ({}));
+  const rawText = await response.text();
+  let payload = {};
+  try {
+    payload = rawText ? JSON.parse(rawText) : {};
+  } catch {
+    payload = {};
+  }
+
   if (!response.ok) {
-    throw new Error(payload?.error || fallbackMessage);
+    throw new Error(payload?.error || rawText || fallbackMessage);
   }
 
   return payload;
@@ -301,6 +308,9 @@ async function withErrorBoundary(task) {
     await task();
   } catch (error) {
     const message = error instanceof Error ? error.message : "Something went wrong.";
+    if (elements.planMeta.textContent === "Thinking...") {
+      elements.planMeta.textContent = "Plan failed";
+    }
     setAction(message);
     setStatus(message);
   }
