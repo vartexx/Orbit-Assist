@@ -1,7 +1,8 @@
 export const GOOGLE_SCOPES = [
   "https://www.googleapis.com/auth/calendar.readonly",
   "https://www.googleapis.com/auth/calendar.events",
-  "https://www.googleapis.com/auth/gmail.compose"
+  "https://www.googleapis.com/auth/gmail.compose",
+  "https://www.googleapis.com/auth/tasks"
 ];
 
 const MINUTE = 60 * 1000;
@@ -283,6 +284,30 @@ export function buildFallbackFollowUp({ event, context }) {
   ].join("\r\n");
 
   return { subject, body };
+}
+
+export function extractTaskTitles(planText, context = {}) {
+  const goal = context.goal?.trim();
+  const lines = planText
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const candidates = lines
+    .filter((line) => /^\d+\./.test(line) || /^[-*]/.test(line))
+    .map((line) => line.replace(/^\d+\.\s*/, "").replace(/^[-*]\s*/, "").trim())
+    .filter((line) => line.length > 10)
+    .slice(0, 4);
+
+  if (candidates.length > 0) {
+    return candidates;
+  }
+
+  return [
+    goal ? `Work on: ${goal}` : "Complete the highest-priority task",
+    "Review the day plan and confirm the next action",
+    "Send follow-up on the most important meeting"
+  ];
 }
 
 export function base64UrlEncode(input) {

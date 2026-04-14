@@ -7,6 +7,7 @@ import {
   buildLocalPlan,
   buildFallbackFollowUp,
   createFocusBlockEvent,
+  extractTaskTitles,
   normalizeEvent,
   pickBestFocusWindow,
   selectAnchorMeeting,
@@ -133,4 +134,14 @@ test("stripMarkdown removes list markers", () => {
   const text = stripMarkdown("- First item\n- Second item");
   assert.equal(text.includes("-"), false);
   assert.match(text, /First item/);
+});
+
+test("extractTaskTitles converts plan text into actionable tasks", () => {
+  const tasks = extractTaskTitles(
+    "1. Finish the prototype\n2. Review feedback from mentors\n3. Draft follow-up email",
+    { goal: "Submit the challenge project" }
+  );
+
+  assert.equal(tasks.length >= 3, true);
+  assert.match(tasks[0], /Finish the prototype/);
 });

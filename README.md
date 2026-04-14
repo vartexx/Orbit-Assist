@@ -25,6 +25,8 @@ Orbit Assist addresses that problem directly by using Google services to:
 - reason over the day with Vertex AI
 - create a protected focus block back in Google Calendar
 - draft a follow-up email in Gmail
+- save the generated plan as actionable items in Google Tasks
+- log workflow analytics in BigQuery
 - open Google Maps links for location-aware meetings
 
 ## Persona
@@ -41,7 +43,9 @@ Orbit Assist connects to core Google services inside one workflow:
 
 - Google Calendar: reads today's events and creates a focus block
 - Gmail: creates a follow-up draft for the most relevant meeting
+- Google Tasks: saves the generated plan as a trackable task list
 - Vertex AI: generates a short plan using real schedule data plus user context
+- BigQuery: stores workflow analytics such as plan generation and action completion events
 - Google Maps links: opens meeting locations directly from calendar-derived event data
 
 The user supplies:
@@ -61,7 +65,9 @@ The assistant then:
 4. asks Vertex AI for a concise action plan
 5. lets the user create a focus block in Calendar
 6. drafts a follow-up email in Gmail for the most relevant meeting
-7. opens Google Maps links when a meeting has a location
+7. saves the most important action items to Google Tasks
+8. logs assistant workflow events to BigQuery for analytics
+9. opens Google Maps links when a meeting has a location
 
 ## Example user journey
 
@@ -71,6 +77,7 @@ The assistant then:
 4. Vertex AI generates a short plan using meeting pressure, energy level, and the top goal.
 5. The user creates a focus block on Google Calendar with one click.
 6. After an important meeting, Orbit Assist drafts a Gmail follow-up so momentum is not lost.
+7. The generated plan can be saved into Google Tasks so the student has a persistent checklist.
 
 ## Logic and decision making
 
@@ -88,7 +95,7 @@ This keeps the assistant practical, deterministic, and easy to maintain.
 
 - Smart dynamic assistant: it reacts to live calendar data and user context
 - Logical decision making: focus recommendations come from clear scheduling rules
-- Effective Google Services use: Calendar, Gmail, Google Maps links, Vertex AI, and Cloud Run all support the workflow
+- Effective Google Services use: Calendar, Gmail, Google Tasks, Google Maps, BigQuery, Vertex AI, and Cloud Run all support the workflow
 - Real-world usability: the output is directly actionable
 - Maintainable code: minimal Node backend, modular JavaScript, and a small deployment footprint
 
@@ -99,7 +106,7 @@ This keeps the assistant practical, deterministic, and easy to maintain.
 - Efficiency: small static frontend, lightweight Node server, no heavy framework, and a local planning fallback when AI is unavailable
 - Testing: unit tests cover scheduling logic, payload building, fallback planning, and follow-up generation helpers
 - Accessibility: semantic labels, live regions, keyboard focus states, a skip link, and responsive layouts for mobile and desktop
-- Google Services: Google Calendar, Gmail, Google Maps links, Vertex AI, and Google Cloud Run are all core parts of the user flow
+- Google Services: Google Calendar, Gmail, Google Tasks, Google Maps, BigQuery, Vertex AI, and Google Cloud Run are all core parts of the user flow
 
 ## Project structure
 
@@ -126,7 +133,9 @@ Create a Google Cloud project and enable the required APIs:
 
 - Google Calendar API
 - Gmail API
+- Google Tasks API
 - Vertex AI API
+- BigQuery API
 
 Create an OAuth client ID for a Web application and add these authorized JavaScript origins:
 
@@ -173,6 +182,7 @@ Current coverage includes:
 - Gmail draft encoding
 - fallback planning logic
 - follow-up generation helpers
+- task extraction from generated plans
 
 ## Deploy on Cloud Run
 
@@ -201,6 +211,7 @@ After deployment, open the Cloud Run URL and enter your Google OAuth Client ID i
 - No secrets are stored in the repository
 - The browser stores only the OAuth client ID and user preferences for convenience
 - Vertex AI calls happen on the backend through Cloud Run
+- Analytics events are stored in BigQuery from the backend for workflow visibility
 - Scopes are limited to the features used by the app
 - The server returns security headers including CSP, `X-Frame-Options`, and `X-Content-Type-Options`
 

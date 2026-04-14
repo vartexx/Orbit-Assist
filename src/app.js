@@ -7,6 +7,7 @@ import {
   buildLocalPlan,
   buildPlanPrompt,
   createFocusBlockEvent,
+  extractTaskTitles,
   extractRecipients,
   formatEventRange,
   normalizeEvent,
@@ -16,6 +17,7 @@ import {
 import {
   createCalendarEvent,
   createGmailDraft,
+  createGoogleTask,
   fetchTodaysEvents,
   getAccessToken,
   hasGoogleIdentity,
@@ -38,6 +40,7 @@ const elements = {
   generatePlan: document.querySelector("#generatePlan"),
   createFocusBlock: document.querySelector("#createFocusBlock"),
   draftFollowUp: document.querySelector("#draftFollowUp"),
+  saveTasks: document.querySelector("#saveTasks"),
   authStatus: document.querySelector("#authStatus"),
   daySummary: document.querySelector("#daySummary"),
   summaryBadge: document.querySelector("#summaryBadge"),
@@ -114,7 +117,8 @@ function setBusy(isBusy) {
     elements.loadDay,
     elements.generatePlan,
     elements.createFocusBlock,
-    elements.draftFollowUp
+    elements.draftFollowUp,
+    elements.saveTasks
   ].forEach((button) => {
     button.disabled = busy;
     button.setAttribute("aria-disabled", String(busy));
@@ -143,6 +147,14 @@ async function postJson(path, body, fallbackMessage) {
   }
 
   return payload;
+}
+
+async function logWorkflowEvent(type, details = {}) {
+  try {
+    await postJson("/api/log-event", { type, details }, "Analytics logging failed.");
+  } catch {
+    // Best-effort analytics should never block the user flow.
+  }
 }
 
 function mapLocation(location) {
@@ -219,6 +231,11 @@ async function loadCalendar() {
   renderEvents();
   renderSummary();
   setStatus("Calendar synced. You can now generate a plan or create actions.");
+  await logWorkflowEvent("calendar_loaded", {
+    totalEvents: state.events.length,
+    meetingLoad: state.profile.meetingLoad,
+    totalMinutes: state.profile.totalMinutes
+  });
 }
 
 async function connectGoogle() {
@@ -275,6 +292,11 @@ async function generatePlan() {
     text = payload?.text || "";
     state.planText = text || "Vertex AI returned an empty result.";
     elements.planMeta.textContent = "Generated from Vertex AI + Calendar";
+    await logWorkflowEvent("plan_generated", {
+      provider: "vertex-ai",
+      meetingLoad: state.profile.meetingLoad,
+      taskGoal: getContext().goal || ""
+    });
   } catch (error) {
     state.planText = buildLocalPlan({
       profile: state.profile,
@@ -284,6 +306,11 @@ async function generatePlan() {
     setAction(
       `Vertex AI was unavailable, so Orbit Assist used its local planning logic instead. ${error instanceof Error ? error.message : ""}`.trim()
     );
+    await logWorkflowEvent("plan_generated", {
+      provider: "local-fallback",
+      meetingLoad: state.profile.meetingLoad,
+      taskGoal: getContext().goal || ""
+    });
   }
 
   elements.planOutput.textContent = stripMarkdown(state.planText);
@@ -306,6 +333,10 @@ async function createFocusBlock() {
   const result = await createCalendarEvent(token, eventPayload);
 
   setAction(`Focus block created on Google Calendar: ${result.summary} at ${new Date(result.start.dateTime).toLocaleString()}`);
+  await logWorkflowEvent("focus_block_created", {
+    summary: result.summary,
+    startsAt: result.start?.dateTime || ""
+  });
   await loadCalendar();
 }
 
@@ -350,6 +381,42 @@ async function draftFollowUp() {
   const result = await createGmailDraft(token, raw);
 
   setAction(`Gmail draft created for ${event.title}. Draft ID: ${result.id}`);
+  await logWorkflowEvent("followup_drafted", {
+    meetingTitle: event.title,
+    recipientCount: recipients.length
+  });
+}
+
+async function savePlanToTasks() {
+  saveSettings();
+  if (!state.profile) {
+    throw new Error("Load your calendar before saving tasks.");
+  }
+
+  if (!state.planText) {
+    throw new Error("Generate a plan first so Orbit Assist has tasks to save.");
+  }
+
+  const token = requireToken();
+  const titles = extractTaskTitles(state.planText, getContext());
+  const due = new Date();
+  due.setHours(18, 0, 0, 0);
+
+  const results = [];
+  for (const title of titles.slice(0, 4)) {
+    const task = await createGoogleTask(token, {
+      title,
+      notes: `Created by Orbit Assist for goal: ${getContext().goal || "No goal provided"}`,
+      due: due.toISOString()
+    });
+    results.push(task);
+  }
+
+  setAction(`Saved ${results.length} action item(s) to Google Tasks.`);
+  await logWorkflowEvent("tasks_created", {
+    count: results.length,
+    goal: getContext().goal || ""
+  });
 }
 
 async function withErrorBoundary(task) {
@@ -389,3 +456,4 @@ elements.loadDay.addEventListener("click", () => withErrorBoundary(loadCalendar)
 elements.generatePlan.addEventListener("click", () => withErrorBoundary(generatePlan));
 elements.createFocusBlock.addEventListener("click", () => withErrorBoundary(createFocusBlock));
 elements.draftFollowUp.addEventListener("click", () => withErrorBoundary(draftFollowUp));
+elements.saveTasks.addEventListener("click", () => withErrorBoundary(savePlanToTasks));

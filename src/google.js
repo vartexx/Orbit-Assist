@@ -1,5 +1,6 @@
 const CALENDAR_BASE = "https://www.googleapis.com/calendar/v3";
 const GMAIL_BASE = "https://gmail.googleapis.com/gmail/v1/users/me";
+const TASKS_BASE = "https://tasks.googleapis.com/tasks/v1";
 
 let tokenClient = null;
 let accessToken = "";
@@ -95,5 +96,12 @@ export async function createGmailDraft(token, raw) {
     body: JSON.stringify({
       message: { raw }
     })
+  });
+}
+
+export async function createGoogleTask(token, task) {
+  return authedFetch(`${TASKS_BASE}/lists/@default/tasks`, token, {
+    method: "POST",
+    body: JSON.stringify(task)
   });
 }
