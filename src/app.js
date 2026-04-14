@@ -4,6 +4,7 @@ import {
   buildDraftRaw,
   buildFallbackFollowUp,
   buildFollowUpPrompt,
+  buildLocalPlan,
   buildPlanPrompt,
   createFocusBlockEvent,
   extractRecipients,
@@ -238,11 +239,24 @@ async function generatePlan() {
     context: getContext(),
     now: new Date()
   });
-  const payload = await postJson("/api/plan", { prompt }, "Vertex AI plan generation failed.");
-  const text = payload?.text || "";
+  let text = "";
 
-  state.planText = text || "Vertex AI returned an empty result.";
-  elements.planMeta.textContent = "Generated from Vertex AI + Calendar";
+  try {
+    const payload = await postJson("/api/plan", { prompt }, "Vertex AI plan generation failed.");
+    text = payload?.text || "";
+    state.planText = text || "Vertex AI returned an empty result.";
+    elements.planMeta.textContent = "Generated from Vertex AI + Calendar";
+  } catch (error) {
+    state.planText = buildLocalPlan({
+      profile: state.profile,
+      context: getContext()
+    });
+    elements.planMeta.textContent = "Fallback local plan";
+    setAction(
+      `Vertex AI was unavailable, so Orbit Assist used its local planning logic instead. ${error instanceof Error ? error.message : ""}`.trim()
+    );
+  }
+
   elements.planOutput.textContent = stripMarkdown(state.planText);
 }
 

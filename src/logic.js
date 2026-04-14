@@ -163,6 +163,43 @@ export function createFocusBlockEvent(profile, context = {}, now = new Date()) {
   };
 }
 
+export function buildLocalPlan({ profile, context }) {
+  const priorityGoal = context.goal?.trim() || "make meaningful progress on the top task";
+  const role = context.role?.trim() || "your role";
+  const focusWindow = pickBestFocusWindow(profile, context);
+  const focusLine = focusWindow
+    ? `${formatTime(focusWindow.start)} to ${formatTime(focusWindow.end)}`
+    : "after your next meeting";
+  const diagnosis =
+    profile.meetingLoad === "heavy"
+      ? "The day is meeting-heavy, so progress will come from protecting small pockets of execution."
+      : profile.meetingLoad === "moderate"
+        ? "The day is balanced, which makes it realistic to pair meetings with one strong execution block."
+        : "The calendar is relatively open, so this is a strong day for deep work and shipping.";
+
+  const priorities = [
+    `1. Protect your highest-value work for ${role}: ${priorityGoal}.`,
+    profile.nextEvent
+      ? `2. Use ${profile.nextEvent.title} as the anchor point, then resume execution immediately after it ends.`
+      : "2. Batch small tasks quickly and keep most of your time for real progress.",
+    profile.shouldProtectEnergy
+      ? "3. Reduce context switching and avoid unnecessary new tasks."
+      : "3. Push for completion while your calendar is still manageable."
+  ];
+
+  const risk = profile.shouldProtectEnergy
+    ? "Running out of energy by reacting to every interruption."
+    : "Letting meetings fragment the time you still have available.";
+
+  return [
+    `1. Diagnosis: ${diagnosis}`,
+    `2. Priority moves:\n${priorities.join("\n")}`,
+    `3. Focus block: ${focusLine} focused on ${priorityGoal}.`,
+    `4. Risk to watch: ${risk}`,
+    "5. Encouragement: Keep the plan simple and finish the next meaningful chunk."
+  ].join("\n\n");
+}
+
 export function buildPlanPrompt({ events, profile, context, now = new Date() }) {
   const compactEvents = events
     .slice(0, 10)
