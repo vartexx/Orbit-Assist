@@ -25,14 +25,14 @@
             <h1>Orbit Assist</h1>
             <p class="lede">
               A smart daily copilot that reads your Google Calendar, adapts to your
-              energy and priorities, generates a realistic day plan with Gemini,
+              energy and priorities, generates a realistic day plan with Vertex AI,
               and turns intent into action with one-click Google Workspace flows.
             </p>
           </div>
           <div class="hero-stats">
             <div>
               <span>Google Services</span>
-              <strong>Calendar, Gmail, Gemini</strong>
+              <strong>Calendar, Gmail, Vertex AI</strong>
             </div>
             <div>
               <span>Build style</span>
@@ -50,7 +50,7 @@
         <section class="panel stack">
           <div class="section-head">
             <h2>1. Connect</h2>
-            <p>Paste your own credentials. Nothing is hardcoded into the repo.</p>
+            <p>Paste only your Google OAuth Client ID. AI runs securely on Cloud Run.</p>
           </div>
 
           <label class="field">
@@ -58,15 +58,11 @@
             <input id="clientId" type="text" placeholder="Google Cloud Web client ID" />
           </label>
 
-          <label class="field">
-            <span>Gemini API Key</span>
-            <input
-              id="geminiKey"
-              type="password"
-              placeholder="AI Studio API key"
-              autocomplete="off"
-            />
-          </label>
+          <div class="summary-card">
+            <strong>Vertex AI is server-side.</strong><br />
+            No model key is required in the browser. Cloud Run calls Vertex AI with
+            Google service account credentials.
+          </div>
 
           <div class="actions">
             <button id="connectGoogle" class="button button-primary">Connect Google</button>
@@ -74,7 +70,7 @@
           </div>
 
           <p id="authStatus" class="status" aria-live="polite">
-            Add credentials, then connect Google to begin.
+            Add your OAuth client ID, then connect Google to begin.
           </p>
         </section>
 
@@ -157,7 +153,7 @@
         <section class="panel stack">
           <div class="section-head">
             <h2>4. Assistant Actions</h2>
-            <p>Use Gemini for reasoning, then send the result back into Google tools.</p>
+            <p>Use Vertex AI for reasoning, then send the result back into Google tools.</p>
           </div>
 
           <div class="actions wrap">
@@ -172,7 +168,7 @@
               <span class="mono" id="planMeta">No plan yet</span>
             </div>
             <div id="planOutput" class="output-body empty-state">
-              Gemini will generate a plan once your schedule is loaded.
+              Vertex AI will generate a plan once your schedule is loaded.
             </div>
           </article>
 

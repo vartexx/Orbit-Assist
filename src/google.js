@@ -1,6 +1,5 @@
 const CALENDAR_BASE = "https://www.googleapis.com/calendar/v3";
 const GMAIL_BASE = "https://gmail.googleapis.com/gmail/v1/users/me";
-const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
 let tokenClient = null;
 let accessToken = "";
@@ -97,29 +96,4 @@ export async function createGmailDraft(token, raw) {
       message: { raw }
     })
   });
-}
-
-export async function generateWithGemini(apiKey, prompt) {
-  const response = await fetch(`${GEMINI_BASE}?key=${encodeURIComponent(apiKey)}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: prompt }]
-        }
-      ]
-    })
-  });
-
-  const payload = await ensureJson(response, "Gemini request failed");
-  return (
-    payload?.candidates?.[0]?.content?.parts
-      ?.map((part) => part.text || "")
-      .join("\n")
-      .trim() || ""
-  );
 }

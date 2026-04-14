@@ -16,7 +16,6 @@ import {
   createCalendarEvent,
   createGmailDraft,
   fetchTodaysEvents,
-  generateWithGemini,
   getAccessToken,
   hasGoogleIdentity,
   initGoogleAuth,
@@ -27,7 +26,6 @@ const storageKey = "orbit-assist-settings";
 
 const elements = {
   clientId: document.querySelector("#clientId"),
-  geminiKey: document.querySelector("#geminiKey"),
   role: document.querySelector("#role"),
   goal: document.querySelector("#goal"),
   energy: document.querySelector("#energy"),
@@ -71,7 +69,6 @@ function saveSettings() {
     storageKey,
     JSON.stringify({
       clientId: elements.clientId.value.trim(),
-      geminiKey: elements.geminiKey.value.trim(),
       ...getContext()
     })
   );
@@ -101,6 +98,23 @@ function setStatus(message) {
 
 function setAction(message) {
   elements.actionOutput.textContent = message;
+}
+
+async function postJson(path, body, fallbackMessage) {
+  const response = await fetch(path, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(body)
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload?.error || fallbackMessage);
+  }
+
+  return payload;
 }
 
 function mapLocation(location) {
@@ -208,12 +222,8 @@ async function generatePlan() {
     throw new Error("Load today's calendar before generating a plan.");
   }
 
-  if (!elements.geminiKey.value.trim()) {
-    throw new Error("Add a Gemini API key before generating a plan.");
-  }
-
   elements.planMeta.textContent = "Thinking...";
-  elements.planOutput.textContent = "Gemini is turning your calendar and context into a plan.";
+  elements.planOutput.textContent = "Vertex AI is turning your calendar and context into a plan.";
 
   const prompt = buildPlanPrompt({
     events: state.events,
@@ -221,10 +231,11 @@ async function generatePlan() {
     context: getContext(),
     now: new Date()
   });
-  const text = await generateWithGemini(elements.geminiKey.value.trim(), prompt);
+  const payload = await postJson("/api/plan", { prompt }, "Vertex AI plan generation failed.");
+  const text = payload?.text || "";
 
-  state.planText = text || "Gemini returned an empty result.";
-  elements.planMeta.textContent = "Generated from Gemini + Calendar";
+  state.planText = text || "Vertex AI returned an empty result.";
+  elements.planMeta.textContent = "Generated from Vertex AI + Calendar";
   elements.planOutput.textContent = stripMarkdown(state.planText);
 }
 
@@ -257,20 +268,22 @@ async function draftFollowUp() {
 
   let draft = buildFallbackFollowUp({ event, context: getContext() });
 
-  if (elements.geminiKey.value.trim()) {
-    const followUpText = await generateWithGemini(
-      elements.geminiKey.value.trim(),
-      buildFollowUpPrompt({ event, context: getContext(), planText: state.planText })
-    );
+  const followUpPayload = await postJson(
+    "/api/follow-up",
+    {
+      prompt: buildFollowUpPrompt({ event, context: getContext(), planText: state.planText })
+    },
+    "Vertex AI follow-up generation failed."
+  );
+  const followUpText = followUpPayload?.text || "";
 
-    if (followUpText) {
-      const subjectMatch = followUpText.match(/Subject:\s*(.+)/i);
-      const bodyMatch = followUpText.match(/Body:\s*([\s\S]+)/i);
-      draft = {
-        subject: subjectMatch?.[1]?.trim() || draft.subject,
-        body: bodyMatch?.[1]?.trim() || draft.body
-      };
-    }
+  if (followUpText) {
+    const subjectMatch = followUpText.match(/Subject:\s*(.+)/i);
+    const bodyMatch = followUpText.match(/Body:\s*([\s\S]+)/i);
+    draft = {
+      subject: subjectMatch?.[1]?.trim() || draft.subject,
+      body: bodyMatch?.[1]?.trim() || draft.body
+    };
   }
 
   const raw = buildDraftRaw({
@@ -298,7 +311,6 @@ renderSummary();
 
 [
   elements.clientId,
-  elements.geminiKey,
   elements.role,
   elements.goal,
   elements.energy,

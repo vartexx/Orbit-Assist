@@ -1,6 +1,6 @@
 # Orbit Assist
 
-Orbit Assist is a tiny browser-based productivity assistant built for a Google Antigravity style challenge. It helps a busy student or knowledge worker turn a messy day into a practical plan by combining live Google Calendar data, Gemini reasoning, and lightweight Google Workspace actions.
+Orbit Assist is a tiny browser-based productivity assistant built for a Google Antigravity style challenge. It helps a busy student or knowledge worker turn a messy day into a practical plan by combining live Google Calendar data, Vertex AI reasoning, and lightweight Google Workspace actions.
 
 ## Chosen Vertical
 
@@ -20,7 +20,7 @@ Orbit Assist connects to three Google services:
 
 - Google Calendar: reads today's events and creates a focus block
 - Gmail: creates a follow-up draft for the most relevant meeting
-- Gemini API: generates a short plan using real schedule data plus user context
+- Vertex AI: generates a short plan using real schedule data plus user context
 
 The user supplies:
 
@@ -36,7 +36,7 @@ The assistant then:
 1. imports today's calendar events
 2. measures meeting load and open focus windows
 3. decides whether the user should protect energy or push execution
-4. asks Gemini for a concise action plan
+4. asks Vertex AI for a concise action plan
 5. lets the user create a focus block in Calendar
 6. drafts a follow-up email in Gmail for the most relevant meeting
 
@@ -56,9 +56,9 @@ This keeps the assistant practical, deterministic, and easy to maintain.
 
 - Smart dynamic assistant: it reacts to live calendar data and user context
 - Logical decision making: focus recommendations come from clear scheduling rules
-- Effective Google Services use: Calendar, Gmail, and Gemini are all part of the workflow
+- Effective Google Services use: Calendar, Gmail, and Vertex AI are all part of the workflow
 - Real-world usability: the output is directly actionable
-- Maintainable code: zero framework, no runtime dependencies, modular JavaScript
+- Maintainable code: minimal Node backend, modular JavaScript, and a small deployment footprint
 
 ## Project structure
 
@@ -85,12 +85,19 @@ Create a Google Cloud project and enable the required APIs:
 
 - Google Calendar API
 - Gmail API
+- Vertex AI API
 
-Create an OAuth client ID for a Web application and add `http://localhost:4173` as an authorized JavaScript origin.
+Create an OAuth client ID for a Web application and add these authorized JavaScript origins:
 
-### 2. Gemini
+- `http://localhost:4173`
+- `https://orbit-assist-1044325459007.asia-south1.run.app`
 
-Create a Gemini API key from Google AI Studio.
+### 2. Vertex AI
+
+Enable Vertex AI in your Google Cloud project.
+
+The app does not need a model API key in the browser. Cloud Run calls Vertex AI
+using Google service account credentials.
 
 ### 3. Run locally
 
@@ -99,6 +106,13 @@ npm run dev
 ```
 
 Open `http://localhost:4173`.
+
+For local server-side Vertex AI calls, authenticate Application Default
+Credentials:
+
+```bash
+gcloud auth application-default login
+```
 
 ## Testing
 
@@ -115,26 +129,28 @@ The tests cover core scheduling and payload-building logic.
 This app can be deployed directly to Google Cloud Run as a public web service.
 
 ```bash
+gcloud services enable run.googleapis.com cloudbuild.googleapis.com aiplatform.googleapis.com
+
 gcloud run deploy orbit-assist \
   --source . \
   --region asia-south1 \
   --allow-unauthenticated
 ```
 
-After deployment, open the Cloud Run URL and enter your Google OAuth Client ID and Gemini API key in the UI.
+After deployment, open the Cloud Run URL and enter your Google OAuth Client ID in the UI.
 
 ## Assumptions made
 
 - A static app is acceptable for the challenge and helps keep the repository very small
-- Users can provide their own OAuth client ID and Gemini API key during demo/setup
+- Users can provide their own OAuth client ID during demo/setup
 - The challenge values working Google integrations over production deployment complexity
-- For a hackathon-style demo, browser-side API calls are acceptable if secrets are not committed
+- Cloud Run is allowed to call Vertex AI with the service account attached to the service
 
 ## Security notes
 
 - No secrets are stored in the repository
-- Credentials are kept only in the browser's local storage for convenience
-- In a production version, Gemini calls and Google API actions should move behind a backend
+- The browser stores only the OAuth client ID and user preferences for convenience
+- Vertex AI calls happen on the backend through Cloud Run
 - Scopes are limited to the features used by the app
 
 ## Accessibility notes
