@@ -1,0 +1,16 @@
+FROM node:24-alpine
+
+WORKDIR /app
+
+COPY package.json ./
+COPY index.html ./
+COPY styles.css ./
+COPY scripts ./scripts
+COPY src ./src
+
+ENV NODE_ENV=production
+ENV PORT=8080
+
+EXPOSE 8080
+
+CMD ["npm", "start"]

@@ -110,6 +110,19 @@ npm test
 
 The tests cover core scheduling and payload-building logic.
 
+## Deploy on Cloud Run
+
+This app can be deployed directly to Google Cloud Run as a public web service.
+
+```bash
+gcloud run deploy orbit-assist \
+  --source . \
+  --region asia-south1 \
+  --allow-unauthenticated
+```
+
+After deployment, open the Cloud Run URL and enter your Google OAuth Client ID and Gemini API key in the UI.
+
 ## Assumptions made
 
 - A static app is acceptable for the challenge and helps keep the repository very small
