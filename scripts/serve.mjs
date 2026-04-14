@@ -11,14 +11,29 @@ const auth = new GoogleAuth({
 
 const types = {
   ".css": "text/css; charset=utf-8",
+  ".ico": "image/x-icon",
   ".html": "text/html; charset=utf-8",
   ".js": "application/javascript; charset=utf-8",
   ".json": "application/json; charset=utf-8",
+  ".txt": "text/plain; charset=utf-8",
+  ".svg": "image/svg+xml",
   ".mjs": "application/javascript; charset=utf-8"
+};
+
+const defaultHeaders = {
+  "Cache-Control": "no-store",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+  "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+  "Cross-Origin-Opener-Policy": "same-origin",
+  "Content-Security-Policy":
+    "default-src 'self'; script-src 'self' https://accounts.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://www.googleapis.com https://gmail.googleapis.com https://accounts.google.com https://asia-south1-aiplatform.googleapis.com; img-src 'self' data:; frame-src https://accounts.google.com; object-src 'none'; base-uri 'self'; form-action 'self'"
 };
 
 function sendJson(response, statusCode, body) {
   response.writeHead(statusCode, {
+    ...defaultHeaders,
     "Content-Type": "application/json; charset=utf-8",
     "Cache-Control": "no-store"
   });
@@ -128,12 +143,13 @@ createServer(async (request, response) => {
   const filePath = normalize(join(root, effectivePath));
 
   if (!filePath.startsWith(root) || !existsSync(filePath) || statSync(filePath).isDirectory()) {
-    response.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+    response.writeHead(404, { ...defaultHeaders, "Content-Type": "text/plain; charset=utf-8" });
     response.end("Not found");
     return;
   }
 
   response.writeHead(200, {
+    ...defaultHeaders,
     "Content-Type": types[extname(filePath)] || "application/octet-stream",
     "Cache-Control": "no-store"
   });

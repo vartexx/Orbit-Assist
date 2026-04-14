@@ -6,7 +6,9 @@ COPY package.json ./
 COPY package-lock.json ./
 RUN npm ci --omit=dev
 
+COPY favicon.svg ./
 COPY index.html ./
+COPY robots.txt ./
 COPY styles.css ./
 COPY scripts ./scripts
 COPY src ./src

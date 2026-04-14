@@ -30,6 +30,22 @@ body {
   font-family: "Space Grotesk", system-ui, sans-serif;
 }
 
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -3rem;
+  z-index: 10;
+  padding: 0.7rem 0.9rem;
+  border-radius: 12px;
+  background: var(--accent-strong);
+  color: #fff;
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
 .bg-orb {
   position: fixed;
   border-radius: 999px;
@@ -203,6 +219,12 @@ body {
   gap: 0.45rem;
 }
 
+.helper-text {
+  margin: -0.3rem 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
 .split {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -263,6 +285,12 @@ button:focus {
   border-color: transparent;
   background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
   color: #f7fffe;
+}
+
+.button[disabled] {
+  opacity: 0.55;
+  cursor: wait;
+  transform: none;
 }
 
 .badge {
@@ -349,5 +377,15 @@ button:focus {
 
   .actions {
     flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    scroll-behavior: auto;
+  }
+
+  .button {
+    transition: none;
   }
 }

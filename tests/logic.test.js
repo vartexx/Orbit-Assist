@@ -4,9 +4,13 @@ import {
   base64UrlEncode,
   buildDayProfile,
   buildDraftRaw,
+  buildLocalPlan,
+  buildFallbackFollowUp,
   createFocusBlockEvent,
   normalizeEvent,
-  pickBestFocusWindow
+  pickBestFocusWindow,
+  selectAnchorMeeting,
+  stripMarkdown
 } from "../src/logic.js";
 
 function event(summary, start, end, attendees = []) {
@@ -67,4 +71,66 @@ test("buildDraftRaw uses base64url-safe encoding", () => {
 
   assert.equal(/[+/=]/.test(raw), false);
   assert.equal(base64UrlEncode("hello"), "aGVsbG8");
+});
+
+test("normalizeEvent extracts attendees and conference link", () => {
+  const normalized = normalizeEvent({
+    summary: "Sync",
+    start: { dateTime: "2026-04-14T09:30:00.000Z" },
+    end: { dateTime: "2026-04-14T10:00:00.000Z" },
+    attendees: [{ email: "one@example.com" }, { email: "two@example.com" }],
+    conferenceData: {
+      entryPoints: [{ entryPointType: "video", uri: "https://meet.google.com/abc-defg-hij" }]
+    }
+  });
+
+  assert.equal(normalized.attendeeCount, 2);
+  assert.equal(normalized.conferenceLink, "https://meet.google.com/abc-defg-hij");
+});
+
+test("selectAnchorMeeting prefers upcoming meetings with attendees", () => {
+  const now = new Date("2026-04-14T09:00:00.000Z");
+  const events = [
+    event("Solo work", "2026-04-14T09:15:00.000Z", "2026-04-14T10:00:00.000Z"),
+    event("Team sync", "2026-04-14T10:30:00.000Z", "2026-04-14T11:00:00.000Z", ["teammate@example.com"])
+  ];
+
+  const anchor = selectAnchorMeeting(events, now);
+  assert.equal(anchor.title, "Team sync");
+});
+
+test("buildLocalPlan returns actionable fallback guidance", () => {
+  const profile = {
+    meetingLoad: "moderate",
+    nextEvent: { title: "Planning", start: new Date("2026-04-14T14:00:00.000Z") },
+    focusWindows: [
+      { start: new Date("2026-04-14T16:00:00.000Z"), end: new Date("2026-04-14T17:00:00.000Z"), minutes: 60 }
+    ],
+    recommendedFocusMinutes: 60,
+    shouldProtectEnergy: false
+  };
+
+  const text = buildLocalPlan({
+    profile,
+    context: { goal: "Ship challenge MVP", role: "Builder", focusBias: "early" }
+  });
+
+  assert.match(text, /Ship challenge MVP/);
+  assert.match(text, /Planning/);
+});
+
+test("buildFallbackFollowUp produces a subject and body", () => {
+  const draft = buildFallbackFollowUp({
+    event: { title: "Client review" },
+    context: { goal: "Close feedback loop", role: "Founder" }
+  });
+
+  assert.match(draft.subject, /Client review/);
+  assert.match(draft.body, /Close feedback loop/);
+});
+
+test("stripMarkdown removes list markers", () => {
+  const text = stripMarkdown("- First item\n- Second item");
+  assert.equal(text.includes("-"), false);
+  assert.match(text, /First item/);
 });

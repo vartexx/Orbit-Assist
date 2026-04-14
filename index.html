@@ -4,6 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Orbit Assist</title>
+    <meta
+      name="description"
+      content="Orbit Assist is a productivity copilot that uses Google Calendar, Gmail, Vertex AI, and Cloud Run to generate daily plans and automate follow-ups."
+    />
+    <meta name="theme-color" content="#0f766e" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -15,9 +21,10 @@
     <script type="module" src="./src/app.js"></script>
   </head>
   <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
     <div class="bg-orb bg-orb-a"></div>
     <div class="bg-orb bg-orb-b"></div>
-    <main class="shell">
+    <main id="main-content" class="shell">
       <section class="hero panel">
         <p class="eyebrow">Productivity Vertical</p>
         <div class="hero-copy">
@@ -53,23 +60,34 @@
             <p>Paste only your Google OAuth Client ID. AI runs securely on Cloud Run.</p>
           </div>
 
-          <label class="field">
+          <label class="field" for="clientId">
             <span>Google OAuth Client ID</span>
-            <input id="clientId" type="text" placeholder="Google Cloud Web client ID" />
+            <input
+              id="clientId"
+              type="text"
+              placeholder="Google Cloud Web client ID"
+              inputmode="text"
+              autocomplete="off"
+              spellcheck="false"
+              aria-describedby="clientIdHint"
+            />
           </label>
+          <p id="clientIdHint" class="helper-text">
+            Use a Google Cloud Web client ID ending in `.apps.googleusercontent.com`.
+          </p>
 
-          <div class="summary-card">
+          <div class="summary-card" role="note">
             <strong>Vertex AI is server-side.</strong><br />
             No model key is required in the browser. Cloud Run calls Vertex AI with
             Google service account credentials.
           </div>
 
           <div class="actions">
-            <button id="connectGoogle" class="button button-primary">Connect Google</button>
-            <button id="loadDay" class="button">Load Today's Calendar</button>
+            <button id="connectGoogle" type="button" class="button button-primary">Connect Google</button>
+            <button id="loadDay" type="button" class="button">Load Today's Calendar</button>
           </div>
 
-          <p id="authStatus" class="status" aria-live="polite">
+          <p id="authStatus" class="status" aria-live="polite" role="status">
             Add your OAuth client ID, then connect Google to begin.
           </p>
         </section>
@@ -81,18 +99,18 @@
           </div>
 
           <div class="split">
-            <label class="field">
+            <label class="field" for="role">
               <span>Your role</span>
               <input id="role" type="text" placeholder="Final-year student, founder, PM..." />
             </label>
-            <label class="field">
+            <label class="field" for="goal">
               <span>Today's top goal</span>
               <input id="goal" type="text" placeholder="Finish prototype and ship demo" />
             </label>
           </div>
 
           <div class="split">
-            <label class="field">
+            <label class="field" for="energy">
               <span>Energy level</span>
               <select id="energy">
                 <option value="low">Low</option>
@@ -100,7 +118,7 @@
                 <option value="high">High</option>
               </select>
             </label>
-            <label class="field">
+            <label class="field" for="workStyle">
               <span>Work style</span>
               <select id="workStyle">
                 <option value="maker" selected>Maker mode</option>
@@ -111,7 +129,7 @@
           </div>
 
           <div class="split">
-            <label class="field">
+            <label class="field" for="focusLength">
               <span>Focus block length</span>
               <select id="focusLength">
                 <option value="45">45 minutes</option>
@@ -119,7 +137,7 @@
                 <option value="90">90 minutes</option>
               </select>
             </label>
-            <label class="field">
+            <label class="field" for="focusBias">
               <span>Preferred start bias</span>
               <select id="focusBias">
                 <option value="early" selected>Earlier in the day</option>
@@ -141,11 +159,11 @@
             <span id="summaryBadge" class="badge">Waiting for data</span>
           </div>
 
-          <div id="daySummary" class="summary-card empty-state">
+          <div id="daySummary" class="summary-card empty-state" role="status" aria-live="polite">
             No calendar imported yet.
           </div>
 
-          <div id="eventsList" class="stack events-list">
+          <div id="eventsList" class="stack events-list" aria-live="polite">
             <p class="empty-state">Today's events will appear here.</p>
           </div>
         </section>
@@ -157,27 +175,27 @@
           </div>
 
           <div class="actions wrap">
-            <button id="generatePlan" class="button button-primary">Generate Smart Plan</button>
-            <button id="createFocusBlock" class="button">Create Focus Block</button>
-            <button id="draftFollowUp" class="button">Draft Follow-up Email</button>
+            <button id="generatePlan" type="button" class="button button-primary">Generate Smart Plan</button>
+            <button id="createFocusBlock" type="button" class="button">Create Focus Block</button>
+            <button id="draftFollowUp" type="button" class="button">Draft Follow-up Email</button>
           </div>
 
-          <article class="output-card">
+          <article class="output-card" aria-labelledby="plan-heading">
             <div class="output-head">
-              <h3>Daily plan</h3>
-              <span class="mono" id="planMeta">No plan yet</span>
+              <h3 id="plan-heading">Daily plan</h3>
+              <span class="mono" id="planMeta" aria-live="polite">No plan yet</span>
             </div>
-            <div id="planOutput" class="output-body empty-state">
+            <div id="planOutput" class="output-body empty-state" aria-live="polite">
               Vertex AI will generate a plan once your schedule is loaded.
             </div>
           </article>
 
-          <article class="output-card">
+          <article class="output-card" aria-labelledby="action-log-heading">
             <div class="output-head">
-              <h3>Action log</h3>
+              <h3 id="action-log-heading">Action log</h3>
               <span class="mono">Google API status</span>
             </div>
-            <div id="actionOutput" class="output-body empty-state">
+            <div id="actionOutput" class="output-body empty-state" aria-live="polite" role="status">
               Focus block creation and Gmail draft results will appear here.
             </div>
           </article>

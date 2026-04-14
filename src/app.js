@@ -51,8 +51,13 @@ const state = {
   events: [],
   profile: null,
   planText: "",
-  googleReady: false
+  googleReady: false,
+  busyCount: 0
 };
+
+function isLikelyOauthClientId(value) {
+  return /\.apps\.googleusercontent\.com$/.test(value.trim());
+}
 
 function getContext() {
   return {
@@ -99,6 +104,21 @@ function setStatus(message) {
 
 function setAction(message) {
   elements.actionOutput.textContent = message;
+}
+
+function setBusy(isBusy) {
+  state.busyCount = Math.max(0, state.busyCount + (isBusy ? 1 : -1));
+  const busy = state.busyCount > 0;
+  [
+    elements.connectGoogle,
+    elements.loadDay,
+    elements.generatePlan,
+    elements.createFocusBlock,
+    elements.draftFollowUp
+  ].forEach((button) => {
+    button.disabled = busy;
+    button.setAttribute("aria-disabled", String(busy));
+  });
 }
 
 async function postJson(path, body, fallbackMessage) {
@@ -204,6 +224,11 @@ async function connectGoogle() {
     return;
   }
 
+  if (!isLikelyOauthClientId(elements.clientId.value)) {
+    setStatus("That OAuth client ID does not look valid yet.");
+    return;
+  }
+
   if (!hasGoogleIdentity()) {
     setStatus("Google Identity Services script is still loading. Try again in a moment.");
     return;
@@ -267,6 +292,12 @@ async function createFocusBlock() {
   }
 
   const token = requireToken();
+  const plannedTitle = `Focus Block: ${getContext().goal?.trim() || "Protect time for the highest-priority task"}`;
+  if (state.events.some((event) => event.title === plannedTitle)) {
+    setAction("A focus block for this goal already exists on today's calendar.");
+    return;
+  }
+
   const eventPayload = createFocusBlockEvent(state.profile, getContext(), new Date());
   const result = await createCalendarEvent(token, eventPayload);
 
@@ -318,6 +349,7 @@ async function draftFollowUp() {
 }
 
 async function withErrorBoundary(task) {
+  setBusy(true);
   try {
     await task();
   } catch (error) {
@@ -327,6 +359,8 @@ async function withErrorBoundary(task) {
     }
     setAction(message);
     setStatus(message);
+  } finally {
+    setBusy(false);
   }
 }
 

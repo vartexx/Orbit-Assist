@@ -60,6 +60,15 @@ This keeps the assistant practical, deterministic, and easy to maintain.
 - Real-world usability: the output is directly actionable
 - Maintainable code: minimal Node backend, modular JavaScript, and a small deployment footprint
 
+## Evaluation mapping
+
+- Code Quality: logic is separated into reusable modules, the UI is intentionally small, and backend responsibilities are isolated in one server file
+- Security: Vertex AI runs on Cloud Run server-side, least-privilege Google scopes are used in the browser, and the server sends security headers
+- Efficiency: small static frontend, lightweight Node server, no heavy framework, and a local planning fallback when AI is unavailable
+- Testing: unit tests cover scheduling logic, payload building, fallback planning, and follow-up generation helpers
+- Accessibility: semantic labels, live regions, keyboard focus states, a skip link, and responsive layouts for mobile and desktop
+- Google Services: Google Calendar, Gmail, Vertex AI, and Google Cloud Run are all core parts of the user flow
+
 ## Project structure
 
 ```text
@@ -124,6 +133,15 @@ npm test
 
 The tests cover core scheduling and payload-building logic.
 
+Current coverage includes:
+
+- meeting-load classification
+- focus window selection
+- calendar event creation payloads
+- Gmail draft encoding
+- fallback planning logic
+- follow-up generation helpers
+
 ## Deploy on Cloud Run
 
 This app can be deployed directly to Google Cloud Run as a public web service.
@@ -152,6 +170,7 @@ After deployment, open the Cloud Run URL and enter your Google OAuth Client ID i
 - The browser stores only the OAuth client ID and user preferences for convenience
 - Vertex AI calls happen on the backend through Cloud Run
 - Scopes are limited to the features used by the app
+- The server returns security headers including CSP, `X-Frame-Options`, and `X-Content-Type-Options`
 
 ## Accessibility notes
 
@@ -159,6 +178,8 @@ After deployment, open the Cloud Run URL and enter your Google OAuth Client ID i
 - High-contrast text on light surfaces
 - Keyboard-focus states on inputs and actions
 - Responsive layout for mobile and desktop
+- A skip link is included for keyboard users
+- Status updates use `aria-live` regions for assistive technologies
 
 ## Submission checklist
 
