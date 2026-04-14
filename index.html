@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Orbit Assist</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script type="module" src="./src/app.js"></script>
+  </head>
+  <body>
+    <div class="bg-orb bg-orb-a"></div>
+    <div class="bg-orb bg-orb-b"></div>
+    <main class="shell">
+      <section class="hero panel">
+        <p class="eyebrow">Productivity Vertical</p>
+        <div class="hero-copy">
+          <div>
+            <h1>Orbit Assist</h1>
+            <p class="lede">
+              A smart daily copilot that reads your Google Calendar, adapts to your
+              energy and priorities, generates a realistic day plan with Gemini,
+              and turns intent into action with one-click Google Workspace flows.
+            </p>
+          </div>
+          <div class="hero-stats">
+            <div>
+              <span>Google Services</span>
+              <strong>Calendar, Gmail, Gemini</strong>
+            </div>
+            <div>
+              <span>Build style</span>
+              <strong>Static, tiny, maintainable</strong>
+            </div>
+            <div>
+              <span>Persona</span>
+              <strong>Busy student or knowledge worker</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid">
+        <section class="panel stack">
+          <div class="section-head">
+            <h2>1. Connect</h2>
+            <p>Paste your own credentials. Nothing is hardcoded into the repo.</p>
+          </div>
+
+          <label class="field">
+            <span>Google OAuth Client ID</span>
+            <input id="clientId" type="text" placeholder="Google Cloud Web client ID" />
+          </label>
+
+          <label class="field">
+            <span>Gemini API Key</span>
+            <input
+              id="geminiKey"
+              type="password"
+              placeholder="AI Studio API key"
+              autocomplete="off"
+            />
+          </label>
+
+          <div class="actions">
+            <button id="connectGoogle" class="button button-primary">Connect Google</button>
+            <button id="loadDay" class="button">Load Today's Calendar</button>
+          </div>
+
+          <p id="authStatus" class="status" aria-live="polite">
+            Add credentials, then connect Google to begin.
+          </p>
+        </section>
+
+        <section class="panel stack">
+          <div class="section-head">
+            <h2>2. Context</h2>
+            <p>The assistant changes its plan based on your actual state, not just your schedule.</p>
+          </div>
+
+          <div class="split">
+            <label class="field">
+              <span>Your role</span>
+              <input id="role" type="text" placeholder="Final-year student, founder, PM..." />
+            </label>
+            <label class="field">
+              <span>Today's top goal</span>
+              <input id="goal" type="text" placeholder="Finish prototype and ship demo" />
+            </label>
+          </div>
+
+          <div class="split">
+            <label class="field">
+              <span>Energy level</span>
+              <select id="energy">
+                <option value="low">Low</option>
+                <option value="steady" selected>Steady</option>
+                <option value="high">High</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Work style</span>
+              <select id="workStyle">
+                <option value="maker" selected>Maker mode</option>
+                <option value="manager">Manager mode</option>
+                <option value="student">Student sprint</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="split">
+            <label class="field">
+              <span>Focus block length</span>
+              <select id="focusLength">
+                <option value="45">45 minutes</option>
+                <option value="60" selected>60 minutes</option>
+                <option value="90">90 minutes</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Preferred start bias</span>
+              <select id="focusBias">
+                <option value="early" selected>Earlier in the day</option>
+                <option value="middle">Midday</option>
+                <option value="late">Later in the day</option>
+              </select>
+            </label>
+          </div>
+        </section>
+      </section>
+
+      <section class="grid results-grid">
+        <section class="panel stack">
+          <div class="section-head sticky-head">
+            <div>
+              <h2>3. Calendar Pulse</h2>
+              <p>Your live day summary from Google Calendar.</p>
+            </div>
+            <span id="summaryBadge" class="badge">Waiting for data</span>
+          </div>
+
+          <div id="daySummary" class="summary-card empty-state">
+            No calendar imported yet.
+          </div>
+
+          <div id="eventsList" class="stack events-list">
+            <p class="empty-state">Today's events will appear here.</p>
+          </div>
+        </section>
+
+        <section class="panel stack">
+          <div class="section-head">
+            <h2>4. Assistant Actions</h2>
+            <p>Use Gemini for reasoning, then send the result back into Google tools.</p>
+          </div>
+
+          <div class="actions wrap">
+            <button id="generatePlan" class="button button-primary">Generate Smart Plan</button>
+            <button id="createFocusBlock" class="button">Create Focus Block</button>
+            <button id="draftFollowUp" class="button">Draft Follow-up Email</button>
+          </div>
+
+          <article class="output-card">
+            <div class="output-head">
+              <h3>Daily plan</h3>
+              <span class="mono" id="planMeta">No plan yet</span>
+            </div>
+            <div id="planOutput" class="output-body empty-state">
+              Gemini will generate a plan once your schedule is loaded.
+            </div>
+          </article>
+
+          <article class="output-card">
+            <div class="output-head">
+              <h3>Action log</h3>
+              <span class="mono">Google API status</span>
+            </div>
+            <div id="actionOutput" class="output-body empty-state">
+              Focus block creation and Gmail draft results will appear here.
+            </div>
+          </article>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>
