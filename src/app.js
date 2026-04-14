@@ -161,6 +161,9 @@ function renderEvents() {
       const locationLine = locationUrl
         ? `<p class="event-location"><a href="${locationUrl}" target="_blank" rel="noreferrer">Open location in Google Maps</a></p>`
         : "";
+      const meetLine = event.conferenceLink
+        ? `<p class="event-location"><a href="${event.conferenceLink}" target="_blank" rel="noreferrer">Open Google Meet link</a></p>`
+        : "";
 
       return `
         <article class="event-card">
@@ -168,6 +171,7 @@ function renderEvents() {
           <p class="event-meta">${formatEventRange(event)} • ${event.attendeeCount} attendee(s)</p>
           ${event.location ? `<p class="event-location">${event.location}</p>` : ""}
           ${locationLine}
+          ${meetLine}
         </article>
       `;
     })

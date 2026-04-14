@@ -1,14 +1,35 @@
 # Orbit Assist
 
-Orbit Assist is a tiny browser-based productivity assistant built for a Google Antigravity style challenge. It helps a busy student or knowledge worker turn a messy day into a practical plan by combining live Google Calendar data, Vertex AI reasoning, and lightweight Google Workspace actions.
+Orbit Assist is a tiny browser-based productivity assistant built for a Google Antigravity style challenge. It is intentionally designed for a deadline-driven student or solo builder who needs help deciding what to do next when classes, meetings, submissions, demos, and follow-ups all collide in one day.
 
 ## Chosen Vertical
 
-Productivity and personal workflow assistance.
+Student productivity and workflow assistance.
+
+## Problem Statement Alignment
+
+This submission targets one specific persona instead of a generic assistant:
+
+- a final-year student, solo builder, or founder preparing for submissions, demos, interviews, classes, and team meetings in the same day
+
+The core problem is overload:
+
+- Google Calendar is full, so the user loses track of what deserves focus
+- deadlines compete with meetings and reactive work
+- follow-ups after important conversations are easy to miss
+- the user needs practical decisions, not generic motivation
+
+Orbit Assist addresses that problem directly by using Google services to:
+
+- understand the real schedule from Google Calendar
+- reason over the day with Vertex AI
+- create a protected focus block back in Google Calendar
+- draft a follow-up email in Gmail
+- open Google Maps links for location-aware meetings
 
 ## Persona
 
-A student, solo builder, founder, or knowledge worker who has:
+A final-year student, solo builder, founder, or knowledge worker who has:
 
 - a crowded Google Calendar
 - limited energy and time
@@ -16,11 +37,12 @@ A student, solo builder, founder, or knowledge worker who has:
 
 ## What the solution does
 
-Orbit Assist connects to three Google services:
+Orbit Assist connects to core Google services inside one workflow:
 
 - Google Calendar: reads today's events and creates a focus block
 - Gmail: creates a follow-up draft for the most relevant meeting
 - Vertex AI: generates a short plan using real schedule data plus user context
+- Google Maps links: opens meeting locations directly from calendar-derived event data
 
 The user supplies:
 
@@ -39,6 +61,16 @@ The assistant then:
 4. asks Vertex AI for a concise action plan
 5. lets the user create a focus block in Calendar
 6. drafts a follow-up email in Gmail for the most relevant meeting
+7. opens Google Maps links when a meeting has a location
+
+## Example user journey
+
+1. A final-year student opens Orbit Assist before a deadline-heavy day.
+2. The app reads Google Calendar and sees classes, reviews, interviews, or project meetings.
+3. Orbit Assist determines whether there is still realistic focus time left.
+4. Vertex AI generates a short plan using meeting pressure, energy level, and the top goal.
+5. The user creates a focus block on Google Calendar with one click.
+6. After an important meeting, Orbit Assist drafts a Gmail follow-up so momentum is not lost.
 
 ## Logic and decision making
 
@@ -56,7 +88,7 @@ This keeps the assistant practical, deterministic, and easy to maintain.
 
 - Smart dynamic assistant: it reacts to live calendar data and user context
 - Logical decision making: focus recommendations come from clear scheduling rules
-- Effective Google Services use: Calendar, Gmail, and Vertex AI are all part of the workflow
+- Effective Google Services use: Calendar, Gmail, Google Maps links, Vertex AI, and Cloud Run all support the workflow
 - Real-world usability: the output is directly actionable
 - Maintainable code: minimal Node backend, modular JavaScript, and a small deployment footprint
 
@@ -67,7 +99,7 @@ This keeps the assistant practical, deterministic, and easy to maintain.
 - Efficiency: small static frontend, lightweight Node server, no heavy framework, and a local planning fallback when AI is unavailable
 - Testing: unit tests cover scheduling logic, payload building, fallback planning, and follow-up generation helpers
 - Accessibility: semantic labels, live regions, keyboard focus states, a skip link, and responsive layouts for mobile and desktop
-- Google Services: Google Calendar, Gmail, Vertex AI, and Google Cloud Run are all core parts of the user flow
+- Google Services: Google Calendar, Gmail, Google Maps links, Vertex AI, and Google Cloud Run are all core parts of the user flow
 
 ## Project structure
 

@@ -83,6 +83,41 @@ body {
   margin-top: 1rem;
 }
 
+.challenge-fit {
+  margin-top: 1rem;
+}
+
+.fit-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.fit-card {
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.fit-card p {
+  margin: 0.55rem 0 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.fit-label {
+  display: inline-flex;
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .panel {
   position: relative;
   overflow: hidden;
@@ -345,6 +380,7 @@ button:focus {
 
 @media (max-width: 940px) {
   .grid,
+  .fit-grid,
   .split,
   .hero-copy {
     grid-template-columns: 1fr;
